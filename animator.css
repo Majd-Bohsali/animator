@@ -1,0 +1,449 @@
+/* All styling for the Animator app. The .gleam files only attach class names. */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+/* ── Layout: two columns ─────────────────────────────────────────────────── */
+
+.app {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #1a1a2e;
+  color: #d4c5a0;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+
+/* Left column: the code editor. */
+.code-col {
+  width: 42%;
+  min-width: 320px;
+  max-width: 720px;
+  flex-shrink: 0;
+  display: flex;
+  border-right: 1px solid #3a3a5e;
+  background: #0f0f1e;
+}
+
+/* The code column stays in the DOM when collapsed, so CodeMirror keeps its
+   state; hiding it gives the right column the full width. */
+.app.code-hidden .code-col { display: none; }
+
+/* A small emoji button (the code pane's collapse toggle, and the playback
+   controls once they exist). */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #2a2a4a;
+  color: #d4c5a0;
+  border: 1px solid #4a4a8a;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  padding: 5px 8px;
+}
+.icon-btn:hover { background: #3a3a5e; }
+
+/* ── Code panel (left column) ───────────────────────────────────────────── */
+
+.code-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #1a1a3e;
+  border-bottom: 1px solid #3a3a5e;
+}
+.code-title {
+  color: #e8d8b0;
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+/* The drawing drop-down, between the header and the editor. */
+.drawing-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: #14142a;
+  border-bottom: 1px solid #2a2a4a;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+}
+.drawing-label { color: #a89c80; }
+.drawing-bar .drawing-select { flex: 1; min-width: 0; }
+
+/* Wrapper holding the editor. */
+.code-editor-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+}
+/* CodeMirror mount node: grows to fill the panel. */
+.code-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow: hidden;
+  background: #0d0d1a;
+}
+.code-editor .cm-editor { width: 100%; height: 100%; }
+
+/* Collapsible reference of the built-ins available to draw functions. */
+.reference {
+  margin: 8px 14px 0;
+  border: 1px solid #3a3a5e;
+  border-radius: 4px;
+  background: #0d0d1a;
+  overflow: hidden;
+}
+.reference-summary {
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #b8a888;
+  font-family: monospace;
+  font-size: 12px;
+  user-select: none;
+}
+.reference-summary:hover { color: #e8d8b0; }
+.reference-body {
+  padding: 4px 12px 10px;
+  border-top: 1px solid #3a3a5e;
+}
+.reference-group { margin-top: 8px; }
+.reference-group-title {
+  color: #8a8aca;
+  font-family: monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.reference-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  padding: 1px 0;
+}
+.reference-sig {
+  color: #89ddff;
+  font-family: monospace;
+  font-size: 12px;
+  white-space: pre;
+}
+.reference-desc { color: #6a7a8a; font-size: 11px; }
+
+/* ── Animation area (right column) ──────────────────────────────────────── */
+
+/* The stage (canvas) on top and the control bar along the bottom. */
+.canvas-area {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a14;
+}
+
+/* Fills the space above the control bar, with the square canvas centred in it. */
+.stage {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+/* A centred square that fits the (possibly non-square) stage. Give your
+   <canvas> this class, so that drawings aren't stretched. */
+.canvas {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+}
+
+/* A parse or evaluation error, overlaid along the bottom of the stage while the
+   canvas keeps showing the last drawing that worked. */
+.canvas-error {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 5;
+  max-height: 40%;
+  margin: 0;
+  padding: 10px 14px;
+  overflow: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #ffb4b4;
+  background: rgba(40, 10, 16, 0.92);
+  border: 1px solid #7a2a36;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Button that reveals the code column again when it is hidden. */
+.reveal-code {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+/* ── Control bar (bottom of the animation area) ─────────────────────────── */
+
+/* One row: playback buttons, then the shape and speed sliders, then color. It
+   wraps onto a second row when the pane is narrow. */
+.controls {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 10px 14px;
+  background: #14142a;
+  border-top: 1px solid #2a2a4a;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12px;
+  color: #d4c5a0;
+}
+.playback {
+  display: flex;
+  gap: 6px;
+  padding-right: 14px;
+  border-right: 1px solid #2a2a4a;
+}
+.playback-btn {
+  min-width: 34px;
+  height: 28px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
+  color: #d4c5a0;
+  background: #1c1c36;
+  border: 1px solid #3a3a5e;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.playback-btn:hover:not(:disabled) {
+  color: #e8d8b0;
+  background: #26264a;
+  border-color: #89ddff;
+}
+.playback-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* A labelled slider (or the color drop-down) that grows to share the row. */
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.control.shape { flex-grow: 1.6; }
+.control.color { flex: 0 0 auto; min-width: 0; }
+
+.control-label { color: #a89c80; white-space: nowrap; }
+.control input[type="range"] {
+  flex: 1;
+  min-width: 80px;
+  margin: 0;
+  accent-color: #89ddff;
+  cursor: pointer;
+}
+.control-value {
+  min-width: 38px;
+  margin-left: -2px;
+  text-align: left;
+  color: #89ddff;
+  font-variant-numeric: tabular-nums;
+}
+.color-mode,
+.drawing-select {
+  height: 28px;
+  padding: 0 6px;
+  font: inherit;
+  color: #d4c5a0;
+  background: #1c1c36;
+  border: 1px solid #3a3a5e;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.color-mode:focus,
+.drawing-select:focus { outline: 1px solid #89ddff; }
+/* The drawing menu's "Code drawings" and "Free draw" headings. */
+.drawing-select optgroup {
+  color: #89ddff;
+  font-style: normal;
+}
+.drawing-select option { color: #d4c5a0; }
+.color-picker {
+  width: 34px;
+  height: 28px;
+  padding: 0 2px;
+  background: none;
+  border: 1px solid #3a3a5e;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* The timeline gets a row of its own across the top of the control bar, like
+   a video player's seek bar, with the other controls in a row beneath it. */
+.controls .control.timeline {
+  flex: 1 1 100%;
+  order: -1;
+}
+.control.timeline .control-value { min-width: 44px; }
+
+/* The control bar's hide button, at the end of its row, and the button that
+   brings the bar back, in the stage's bottom-right corner while it's hidden. */
+.hide-controls { margin-left: auto; }
+.canvas-area.controls-hidden .controls { display: none; }
+.show-controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 6;
+}
+
+/* The Edit button that reopens a free draw drawing, set apart from the color
+   control. */
+.sketch-entry {
+  display: flex;
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 1px solid #2a2a4a;
+}
+
+/* ── Free draw menu (replaces the control bar while sketching) ──────────── */
+
+/* The menu stays on one row: tighter gaps, and the size slider shrinks to
+   make room rather than anything wrapping. */
+.sketch-controls {
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+.sketch-controls > * { flex-shrink: 0; }
+
+.sketch-controls .control.thickness {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 220px;
+}
+.sketch-controls .control.thickness input[type="range"] { min-width: 40px; }
+.sketch-controls .control.thickness .control-value { min-width: 18px; }
+.sketch-controls .color-picker { width: 30px; }
+.sketch-controls .playback {
+  padding-right: 0;
+  padding-left: 10px;
+  border-right: none;
+  border-left: 1px solid #2a2a4a;
+}
+/* Cancel and Done sit together at the end of the row. */
+.sketch-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.sketch-actions [data-test-id="sketch-done"]:not(:disabled) {
+  color: #10101f;
+  background: #89ddff;
+  border-color: #89ddff;
+}
+/* A pencil cursor over the canvas while sketching, drawing from its tip in the
+   bottom-left corner (a crosshair where custom cursors aren't supported), and an
+   accent outline around the bar so draw mode stands out. */
+.canvas-area.sketching .canvas {
+  /* Dragging a finger or stylus draws instead of scrolling the page. */
+  touch-action: none;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M3 21l1.5-5L16 4.5l3.5 3.5L8 19.5z' fill='%2389ddff' stroke='%2310101f' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cpath d='M3 21l1.5-5 3.5 3.5z' fill='%23d4c5a0' stroke='%2310101f' stroke-width='1.2' stroke-linejoin='round'/%3E%3Cpath d='M14.5 6l3.5 3.5' stroke='%2310101f' stroke-width='1.2'/%3E%3C/svg%3E") 3 21, crosshair;
+}
+.canvas-area.sketching .controls { border-top-color: #89ddff; }
+
+/* The keyboard-shortcut reminder, faint in the stage's top-right corner. */
+.shortcuts {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  z-index: 4;
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  color: #4a5a6a;
+  pointer-events: none;
+}
+
+/* ── Free draw theme ─────────────────────────────────────────────────────── */
+
+/* While a free draw drawing is open, the app has the class sketch-theme and
+   uses a charcoal theme: every dark blue becomes a neutral dark gray of the
+   same darkness, with a light gray accent in place of the light blue one. Only
+   colors change here. */
+.app.sketch-theme { background: #222224; }
+.sketch-theme .code-col { background: #151517; border-right-color: #444448; }
+.sketch-theme .icon-btn { background: #343437; border-color: #5c5c62; }
+.sketch-theme .icon-btn:hover { background: #444448; }
+.sketch-theme .code-header { background: #27272a; border-bottom-color: #444448; }
+.sketch-theme .drawing-bar { background: #1c1c1e; border-bottom-color: #343437; }
+.sketch-theme .code-editor,
+.sketch-theme .reference { background: #121214; }
+.sketch-theme .reference,
+.sketch-theme .reference-body { border-color: #444448; }
+.sketch-theme .reference-group-title { color: #a8a8ae; }
+.sketch-theme .reference-sig { color: #e0e0e0; }
+.sketch-theme .canvas-area { background: #0d0d0e; }
+.sketch-theme .controls { background: #1c1c1e; border-top-color: #343437; }
+.sketch-theme .playback { border-right-color: #343437; }
+.sketch-theme .sketch-entry,
+.sketch-theme .sketch-controls .playback { border-left-color: #343437; }
+.sketch-theme .playback-btn,
+.sketch-theme .color-mode,
+.sketch-theme .drawing-select { background: #2a2a2d; border-color: #444448; }
+.sketch-theme .color-picker { border-color: #444448; }
+.sketch-theme .playback-btn:hover:not(:disabled) {
+  background: #38383c;
+  border-color: #e0e0e0;
+}
+.sketch-theme .control input[type="range"] { accent-color: #e0e0e0; }
+.sketch-theme .control-value,
+.sketch-theme .drawing-select optgroup { color: #e0e0e0; }
+.sketch-theme .color-mode:focus,
+.sketch-theme .drawing-select:focus { outline-color: #e0e0e0; }
+.sketch-theme .sketch-actions [data-test-id="sketch-done"]:not(:disabled) {
+  color: #111113;
+  background: #e0e0e0;
+  border-color: #e0e0e0;
+}
+.sketch-theme .canvas-area.sketching .controls { border-top-color: #e0e0e0; }
+.sketch-theme .drawing-select option { color: #d4c5a0; }
+
+/* The code editor's own colors are set in editor_ffi.mjs, so these override
+   them. */
+.sketch-theme .cm-editor,
+.sketch-theme .cm-gutters { background-color: #121214 !important; }
+.sketch-theme .cm-gutters { color: #444448 !important; }
+.sketch-theme .cm-activeLine,
+.sketch-theme .cm-activeLineGutter { background-color: #1c1c1f !important; }
+.sketch-theme .cm-editor.cm-focused { outline-color: #8a8a90 !important; }
